@@ -1,7 +1,7 @@
 # Interrupted Time Series Analysis: Transit Ridership Impact Study
 
 **Author:** Tomasz Solis  
-**Date:** December 2024  
+**Date:** December 2025  
 **Objective:** Rigorous ITS methodology practice using synthetic transit data
 
 ---
