@@ -37,7 +37,7 @@ These mirror real-world complications in policy evaluation and product analytics
 - 783 observations (261 weeks × 3 route types)
 - January 2020 - December 2024
 - Route types: Downtown, Suburban, Cross-town
-- Known treatment effects for validation
+- Known treatment effects: +300, +200, +150 riders for validation
 
 **Future dataset:** Realistic (hard mode)  
 - Same structure, but with smaller effects, more noise, and ambiguous results
@@ -58,20 +58,20 @@ transit-its-analysis/
 │   └── hard_mode/
 │       └── (coming later)
 ├── notebooks/
-│   ├── 01_eda_baseline.ipynb           # Current: EDA and assumption testing
-│   └── 02_its_model_baseline.ipynb     # TBD
+│   ├── 01_eda_baseline.ipynb           # Complete: EDA and assumption testing
+│   └── 02_its_model_baseline.ipynb     # Complete: ITS analysis with validation
 ├── outputs/
 │   ├── figures/                         # Generated plots
 │   └── results/                         # Model outputs and tables
 └── src/
-    └── (utility functions as needed)
+    └── generate_baseline_data.py        # Data generation script
 ```
 
 ---
 
 ## Current Progress
 
-### ✅ Completed: Exploratory Data Analysis
+### Completed: Exploratory Data Analysis
 
 **Notebook:** `01_eda_baseline.ipynb`
 
@@ -80,21 +80,59 @@ transit-its-analysis/
 1. **Data Quality:** Complete dataset, no missing values, consistent 7-day intervals
 
 2. **Pre-Intervention Trends:** NOT parallel across route types
-   - Downtown: 2.45 riders/week growth
-   - Suburban: 1.67 riders/week growth
+   - Downtown: 2.47 riders/week growth
+   - Suburban: 1.66 riders/week growth
    - Cross-town: 1.09 riders/week growth
-   - Downtown growing 2.25x faster than Cross-town (125% difference)
+   - Downtown growing 2.27x faster than Cross-town (127% difference)
 
-3. **Seasonality:** Significant in 2 of 3 route types (p < 0.05)
-   - Requires month fixed effects in models
+3. **Seasonality:** Minimal in baseline dataset (by design for learning)
+   - Summer/winter dips present but small
+   - No month fixed effects needed for baseline analysis
 
-4. **Visual Evidence:** Clear level increase at January 2024 across all routes
+4. **Visual Evidence:** Large, obvious level increases at January 2024 across all routes
 
-5. **Autocorrelation:** Likely present (weekly time series)
-   - Will require Newey-West robust standard errors
+5. **Autocorrelation:** Detected (Durbin-Watson < 2.0)
+   - Addressed with Newey-West robust standard errors
 
 **Critical methodological decision:**  
-The parallel trends assumption is violated. Standard pooled ITS is inappropriate. Must use segment-specific models allowing heterogeneous treatment effects.
+The parallel trends assumption is violated. Standard pooled ITS is inappropriate. Using segment-specific models allowing heterogeneous treatment effects.
+
+---
+
+### Completed: ITS Segmented Regression Analysis
+
+**Notebook:** `02_its_model_baseline.ipynb`
+
+**Model specification:**
+```
+ridership_t = β₀ + β₁(time) + β₂(post_intervention) + β₃(time_since_intervention) + ε_t
+```
+
+**Results:**
+
+| Route Type | True Effect | Estimated β₂ | Error | 95% CI | R² |
+|------------|-------------|--------------|-------|--------|-----|
+| Downtown | +300 riders | +307.7 | +2.6% | [293.8, 321.6] | 0.993 |
+| Suburban | +200 riders | +202.5 | +1.3% | [182.3, 222.7] | 0.989 |
+| Cross-town | +150 riders | +150.7 | +0.4% | [136.3, 165.0] | 0.983 |
+
+**Validation: PASSED**
+- All estimates within ±3% of true treatment effects
+- All true effects fall within 95% confidence intervals
+- Model fit excellent (R² > 0.98) across all route types
+- Treatment effects stable throughout post-intervention period
+
+**Key technical choices:**
+- Separate OLS models for each route type (non-parallel pre-trends)
+- Newey-West HAC standard errors (maxlags=4) for autocorrelation
+- No month fixed effects (minimal seasonality + confounding with Jan 1 intervention)
+- Counterfactual validation against known ground truth
+
+**What I learned:**
+- Month fixed effects trap: When intervention timing coincides with calendar periods (January 1), standard seasonal dummies create multicollinearity and absorb treatment effects
+- Segment-specific modeling handles non-parallel pre-trends effectively
+- Validation against synthetic data confirms methodology before applying to real data
+- Treatment effect stability over time supports causal interpretation
 
 ---
 
@@ -105,14 +143,13 @@ ITS analysis estimates causal effects by comparing actual post-intervention outc
 **Segmented regression specification:**
 
 ```
-ridership_t = β₀ + β₁(time) + β₂(post_intervention) + β₃(time_since_intervention) + Σ(month_FE) + ε_t
+ridership_t = β₀ + β₁(time) + β₂(post_intervention) + β₃(time_since_intervention) + ε_t
 ```
 
 **Parameters:**
 - `β₁`: Pre-intervention trend (slope before intervention)
-- `β₂`: Immediate level change at intervention
+- `β₂`: Immediate level change at intervention ← **Key causal effect**
 - `β₃`: Change in slope after intervention
-- `month_FE`: Month fixed effects for seasonality
 
 **Estimation approach:**
 - Separate models for each route type (given non-parallel pre-trends)
@@ -175,7 +212,7 @@ This project is part of my causal inference learning journey:
 1. **RDD Analysis** - [Free Shipping Threshold Effects](https://github.com/tomasz-solis/rdd-free-shipping)
 2. **Simple DiD** - [Marketing Campaign Impact](https://github.com/tomasz-solis/marketing-campaign-causal-impact)
 3. **Staggered DiD** - [IPO Lockups](https://github.com/tomasz-solis/ipo-lockup-did-analysis)
-4. **Interupted time series** - *This project* Ridership
+4. **Interrupted Time Series** - *This project*
 
 ---
 
