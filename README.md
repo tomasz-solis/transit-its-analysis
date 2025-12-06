@@ -2,7 +2,7 @@
 
 **Author:** Tomasz Solis  
 **Date:** December 2025  
-**Objective:** Rigorous ITS methodology practice using synthetic transit data
+**Objective:** ITS methodology practice using synthetic transit data
 
 ---
 
@@ -59,9 +59,10 @@ transit-its-analysis/
 │       └── (coming later)
 ├── notebooks/
 │   ├── 01_eda_baseline.ipynb           # Complete: EDA and assumption testing
-│   └── 02_its_model_baseline.ipynb     # Complete: ITS analysis with validation
+│   ├── 02_its_model_baseline.ipynb     # Complete: ITS analysis with validation
+│   └── 03_robustness_checks.ipynb      # Complete: Placebo, sensitivity, spec tests
 ├── outputs/
-│   ├── figures/                         # Generated plots
+│   ├── figures/                         # Generated plots (10 total)
 │   └── results/                         # Model outputs and tables
 └── src/
     └── generate_baseline_data.py        # Data generation script
@@ -136,6 +137,48 @@ ridership_t = β₀ + β₁(time) + β₂(post_intervention) + β₃(time_since_
 
 ---
 
+### Completed: Robustness Checks
+
+**Notebook:** `03_robustness_checks.ipynb`
+
+**What I tested:**
+
+1. **Placebo Tests** (12 fake intervention dates)
+   - Tested Jan 2022, Jul 2022, Jan 2023, Jul 2023
+   - Result: Placebo estimates ~16% of real effects
+   - Conclusion: Model not finding spurious patterns
+
+2. **Window Sensitivity** (1-4 years of pre-data)
+   - Tested 1, 2, 3, 4 year pre-intervention periods
+   - Result: <5% variation across windows
+   - Conclusion: Not sensitive to historical period choice
+
+3. **Leave-One-Out Validation** (exclude each route)
+   - Tested excluding Downtown, Suburban, Cross-town
+   - Result: 0% deviation (expected with segment-specific models)
+   - Conclusion: Confirms segmentation approach was appropriate
+
+4. **Alternative Specifications** (~15 spec variants)
+   - Newey-West lags: 2, 4, 6, 8 weeks
+   - Boundary exclusions: first month, last month, both
+   - Slope change: allowed β₃ ≠ 0
+   - Result: <6% worst-case deviation
+   - Conclusion: Not sensitive to modeling choices
+
+**Overall assessment:**
+- Placebo tests: PASSED (16% of real effects)
+- Window tests: EXCELLENT (<5% variation)
+- Leave-one-out: EXCELLENT (0% deviation)
+- Specification tests: EXCELLENT (<6% deviation)
+
+**Interpretation:**  
+The +300/+200/+150 rider effects appear robust to falsification tests, time window choices, and specification alternatives. Results suggest the ITS methodology is working correctly on this baseline dataset.
+
+**Caveats:**  
+This is synthetic data with known ground truth and large, clear effects by design. Real-world analysis would show more sensitivity and require more judgment about which specifications are appropriate.
+
+---
+
 ## Methodology: Interrupted Time Series
 
 ITS analysis estimates causal effects by comparing actual post-intervention outcomes to a projected counterfactual based on pre-intervention trends.
@@ -164,21 +207,26 @@ ridership_t = β₀ + β₁(time) + β₂(post_intervention) + β₃(time_since_
 - Segmented regression modeling for ITS
 - Pre-trend validation and parallel trends testing
 - Autocorrelation detection and correction
-- Seasonality adjustment
 - Counterfactual projection
-- Sensitivity analysis and placebo tests
+- Placebo tests and falsification
+- Sensitivity analysis and specification robustness
 
 **Methodological judgment:**
 - Recognizing when ITS assumptions are violated
 - Choosing appropriate model specifications given violations
 - Distinguishing causal effects from confounding
+- Systematically interrogating findings
 - Communicating results with honest uncertainty
 
-**Portfolio development:**
-- Clean, reproducible analysis workflow
-- Professional documentation
-- Transparent assumption testing
-- Honest limitation acknowledgment
+---
+
+## Next Steps
+
+**Apply to realistic dataset**
+- Smaller, ambiguous treatment effects (~50, ~30, ~15 riders)
+- More noise and confounders
+- Practice communicating uncertain results
+- "This is what real analytics looks like"
 
 ---
 
