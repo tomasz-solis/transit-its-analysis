@@ -55,7 +55,7 @@ ipython_config.py
 .LSOverride
 
 # Data files (optional - keep easy_mode, ignore hard_mode until ready)
-data/hard_mode/
+# data/hard_mode/
 
 # Large output files (keep figures, ignore large intermediate files)
 outputs/models/
