@@ -2,16 +2,16 @@
 
 **Author:** Tomasz Solis  
 **Date:** December 2025  
-**Objective:** ITS methodology practice using synthetic transit data
+**Objective:** Learning ITS methodology through baseline validation and realistic application
 
 ---
 
 ## Project Overview
 
-This project applies Interrupted Time Series (ITS) analysis to measure the causal impact of express bus lanes on transit ridership. The analysis uses synthetic weekly ridership data spanning 2020-2024, with the intervention occurring January 1, 2024.
+This project applies Interrupted Time Series (ITS) analysis to measure the causal impact of express bus lanes on transit ridership. The analysis uses two synthetic datasets: a clean baseline for methodology validation, and a realistic dataset with confounders for practicing real-world analytics.
 
 **Why this project exists:**  
-ITS is a powerful quasi-experimental method for policy evaluation when randomized experiments aren't feasible. This project serves as methodological practice for applying ITS to real-world business analytics challenges involving big-bang rollouts, multiple segments, and messy observational data.
+ITS is a quasi-experimental method for policy evaluation when randomized experiments aren't feasible. This project is methodological practice - first validating ITS mechanics on clean data, then applying the same approach to messy data to learn how to communicate uncertain results honestly.
 
 ---
 
@@ -23,25 +23,29 @@ Metropolitan Transit Authority launched express bus lanes across the city on Jan
 
 **Key challenges:**
 - Multiple route types with different baseline dynamics
-- Seasonal patterns in ridership
-- Concurrent events near intervention date
 - Non-parallel pre-intervention trends across segments
+- Confounding events near intervention (realistic dataset)
+- Small effects relative to noise (realistic dataset)
 
 These mirror real-world complications in policy evaluation and product analytics.
 
 ---
 
-## Dataset Structure
+## Datasets
 
-**Current dataset:** Baseline (easy mode)  
+### **Baseline Dataset (easy_mode)**
 - 783 observations (261 weeks × 3 route types)
 - January 2020 - December 2024
-- Route types: Downtown, Suburban, Cross-town
-- Known treatment effects: +300, +200, +150 riders for validation
+- Known treatment effects: +300, +200, +150 riders
+- Low noise, large clear effects
+- **Purpose:** Validate methodology works correctly
 
-**Future dataset:** Realistic (hard mode)  
-- Same structure, but with smaller effects, more noise, and ambiguous results
-- Tests methodology under realistic conditions
+### **Realistic Dataset (hard_mode)**
+- Same structure as baseline
+- Known treatment effects: +50, +30, +15 riders (6-10x smaller)
+- High noise (3x baseline variance)
+- Confounders: Competitor launch (Jul 2023), gas spike (2022), severe winter (2023)
+- **Purpose:** Practice handling messy real-world data
 
 ---
 
@@ -56,132 +60,115 @@ transit-its-analysis/
 │   ├── easy_mode/
 │   │   └── transit_ridership_baseline.csv
 │   └── hard_mode/
-│       └── (coming later)
+│       └── transit_ridership_realistic.csv
 ├── notebooks/
-│   ├── 01_eda_baseline.ipynb           # Complete: EDA and assumption testing
-│   ├── 02_its_model_baseline.ipynb     # Complete: ITS analysis with validation
-│   └── 03_robustness_checks.ipynb      # Complete: Placebo, sensitivity, spec tests
+│   ├── 01_eda_baseline.ipynb           # Complete
+│   ├── 02_its_model_baseline.ipynb     # Complete
+│   ├── 03_robustness_checks.ipynb      # Complete
+│   ├── 04_eda_realistic.ipynb          # Complete
+│   ├── 05_its_model_realistic.ipynb    # Complete
+│   └── 06_robustness_checks_realistic.ipynb  # Complete
 ├── outputs/
-│   ├── figures/                         # Generated plots (10 total)
-│   └── results/                         # Model outputs and tables
+│   └── figures/                         # Generated plots
 └── src/
-    └── generate_baseline_data.py        # Data generation script
+    ├── generate_baseline_data.py
+    └── generate_realistic_data.py
 ```
 
 ---
 
-## Current Progress
+## Analysis Summary
 
-### Completed: Exploratory Data Analysis
+### **Part 1: Baseline Dataset (Validation)**
 
-**Notebook:** `01_eda_baseline.ipynb`
-
-**Key findings:**
-
-1. **Data Quality:** Complete dataset, no missing values, consistent 7-day intervals
-
-2. **Pre-Intervention Trends:** NOT parallel across route types
-   - Downtown: 2.47 riders/week growth
-   - Suburban: 1.66 riders/week growth
-   - Cross-town: 1.09 riders/week growth
-   - Downtown growing 2.27x faster than Cross-town (127% difference)
-
-3. **Seasonality:** Minimal in baseline dataset (by design for learning)
-   - Summer/winter dips present but small
-   - No month fixed effects needed for baseline analysis
-
-4. **Visual Evidence:** Large, obvious level increases at January 2024 across all routes
-
-5. **Autocorrelation:** Detected (Durbin-Watson < 2.0)
-   - Addressed with Newey-West robust standard errors
-
-**Critical methodological decision:**  
-The parallel trends assumption is violated. Standard pooled ITS is inappropriate. Using segment-specific models allowing heterogeneous treatment effects.
-
----
-
-### Completed: ITS Segmented Regression Analysis
-
-**Notebook:** `02_its_model_baseline.ipynb`
-
-**Model specification:**
-```
-ridership_t = β₀ + β₁(time) + β₂(post_intervention) + β₃(time_since_intervention) + ε_t
-```
+**Notebooks 01-03:** EDA, ITS Model, Robustness Checks
 
 **Results:**
 
-| Route Type | True Effect | Estimated β₂ | Error | 95% CI | R² |
-|------------|-------------|--------------|-------|--------|-----|
-| Downtown | +300 riders | +307.7 | +2.6% | [293.8, 321.6] | 0.993 |
-| Suburban | +200 riders | +202.5 | +1.3% | [182.3, 222.7] | 0.989 |
-| Cross-town | +150 riders | +150.7 | +0.4% | [136.3, 165.0] | 0.983 |
+| Route | True Effect | Estimated β₂ | Error | 95% CI | Significance |
+|-------|-------------|--------------|-------|--------|--------------|
+| Downtown | +300 | +307.7 | +2.6% | [294, 322] | p < 0.001 ✓ |
+| Suburban | +200 | +202.5 | +1.3% | [182, 223] | p < 0.001 ✓ |
+| Cross-town | +150 | +150.7 | +0.4% | [136, 165] | p < 0.001 ✓ |
 
-**Validation: PASSED**
-- All estimates within ±3% of true treatment effects
-- All true effects fall within 95% confidence intervals
-- Model fit excellent (R² > 0.98) across all route types
-- Treatment effects stable throughout post-intervention period
+**Robustness checks:**
+- ✓ Placebo tests: 16% of real effects, 0/12 significant
+- ✓ Window sensitivity: <5% variation
+- ✓ Leave-one-out: 0% deviation (segment-specific models appropriate)
+- ✓ Alternative specs: <6% deviation
 
-**Key technical choices:**
-- Separate OLS models for each route type (non-parallel pre-trends)
-- Newey-West HAC standard errors (maxlags=4) for autocorrelation
-- No month fixed effects (minimal seasonality + confounding with Jan 1 intervention)
-- Counterfactual validation against known ground truth
-
-**What I learned:**
-- Month fixed effects trap: When intervention timing coincides with calendar periods (January 1), standard seasonal dummies create multicollinearity and absorb treatment effects
-- Segment-specific modeling handles non-parallel pre-trends effectively
-- Validation against synthetic data confirms methodology before applying to real data
-- Treatment effect stability over time supports causal interpretation
+**Conclusion:** ITS methodology validated. Estimates within ±3% of known effects, all assumptions satisfied, results extremely robust.
 
 ---
 
-### Completed: Robustness Checks
+### **Part 2: Realistic Dataset (Practice)**
 
-**Notebook:** `03_robustness_checks.ipynb`
+**Notebooks 04-06:** EDA, ITS Model, Robustness Checks
 
-**What I tested:**
+**EDA findings:**
+- High pre-period noise: σ = 77-165 riders (vs 42-80 post-period)
+- Naive differences: +366, +236, +157 (massively inflated by trends + confounders)
+- Same non-parallel pre-trends (128% difference)
+- **Critical confounder:** Competitor bus service launched Jul 2023, 6 months before intervention
 
-1. **Placebo Tests** (12 fake intervention dates)
-   - Tested Jan 2022, Jul 2022, Jan 2023, Jul 2023
-   - Result: Placebo estimates ~16% of real effects
-   - Conclusion: Model not finding spurious patterns
+**ITS results:**
 
-2. **Window Sensitivity** (1-4 years of pre-data)
-   - Tested 1, 2, 3, 4 year pre-intervention periods
-   - Result: <5% variation across windows
-   - Conclusion: Not sensitive to historical period choice
+| Route | True Effect | Estimated β₂ | Error | 95% CI | Significance |
+|-------|-------------|--------------|-------|--------|--------------|
+| Downtown | +50 | +53.0 | +6% | [9, 97] | p = 0.018 ✓ |
+| Suburban | +30 | +23.4 | -22% | [-20, 67] | p = 0.292 ✗ |
+| Cross-town | +15 | +7.2 | -52% | [-15, 29] | p = 0.519 ✗ |
 
-3. **Leave-One-Out Validation** (exclude each route)
-   - Tested excluding Downtown, Suburban, Cross-town
-   - Result: 0% deviation (expected with segment-specific models)
-   - Conclusion: Confirms segmentation approach was appropriate
+**Key differences from baseline:**
+- Only 1/3 routes statistically significant (vs 3/3)
+- Errors: 6-52% (vs <3%)
+- CI widths: ±22-44 riders (vs ±10-15)
+- R²: 0.83-0.89 (vs 0.98-0.99)
 
-4. **Alternative Specifications** (~15 spec variants)
-   - Newey-West lags: 2, 4, 6, 8 weeks
-   - Boundary exclusions: first month, last month, both
-   - Slope change: allowed β₃ ≠ 0
-   - Result: <6% worst-case deviation
-   - Conclusion: Not sensitive to modeling choices
+**Robustness checks:**
+- ⚠️ Placebo tests: 3/12 significant (25%), largest placebo 68.8 vs smallest real effect 7.2 (955% ratio)
+- ⚠️ Window sensitivity: 28-83% variation (Downtown most stable, Cross-town very sensitive)
+- ✓ Leave-one-out: Still 0% deviation
+- ⚠️ Alternative specs: 62-98% deviation (very sensitive to modeling choices)
 
-**Overall assessment:**
-- Placebo tests: PASSED (16% of real effects)
-- Window tests: EXCELLENT (<5% variation)
-- Leave-one-out: EXCELLENT (0% deviation)
-- Specification tests: EXCELLENT (<6% deviation)
+**Honest assessment:**
 
-**Interpretation:**  
-The +300/+200/+150 rider effects appear robust to falsification tests, time window choices, and specification alternatives. Results suggest the ITS methodology is working correctly on this baseline dataset.
+The realistic dataset results show **fragile evidence**, not just uncertainty:
 
-**Caveats:**  
-This is synthetic data with known ground truth and large, clear effects by design. Real-world analysis would show more sensitivity and require more judgment about which specifications are appropriate.
+**What worked:**
+- Downtown route shows positive effect directionally
+- All true effects fall within confidence intervals (not biased, just imprecise)
+- Segment-specific approach still appropriate
+
+**What didn't work:**
+- Robustness checks reveal serious issues:
+  - Placebo effects larger than real effects (red flag for noise)
+  - Results very sensitive to time window and specification choices
+  - Can't reliably distinguish signal from noise for Suburban/Cross-town
+- Competitor confounder creates fundamental identification problem
+- High noise overwhelms small effects
+
+**What this teaches:**
+
+This is what happens when ITS assumptions are badly violated:
+- Concurrent confounders (competitor) bias the counterfactual
+- Small effects + high noise = low statistical power
+- Can get point estimates but can't trust them
+- Modeling choices matter enormously
+
+**In practice, I would report:**
+"Results are inconclusive. Downtown shows directional evidence of positive effects, but competitor confounder and high noise prevent reliable quantification. Suburban and Cross-town effects not detectable. Would need either:<br>
+(1) more post-intervention data to improve precision,<br>
+(2) complementary analysis method,<br>
+(3) acknowledge we can't measure this cleanly."<br>
+
+This is the honest reality of messy observational data - sometimes you can't get clean answers, and acknowledging that is better than overselling weak results.
 
 ---
 
 ## Methodology: Interrupted Time Series
 
-ITS analysis estimates causal effects by comparing actual post-intervention outcomes to a projected counterfactual based on pre-intervention trends.
+ITS estimates causal effects by comparing actual post-intervention outcomes to a projected counterfactual based on pre-intervention trends.
 
 **Segmented regression specification:**
 
@@ -195,42 +182,63 @@ ridership_t = β₀ + β₁(time) + β₂(post_intervention) + β₃(time_since_
 - `β₃`: Change in slope after intervention
 
 **Estimation approach:**
-- Separate models for each route type (given non-parallel pre-trends)
-- Newey-West HAC standard errors (accounting for autocorrelation)
+- Separate models for each route type (non-parallel pre-trends)
+- Newey-West HAC standard errors (autocorrelation)
 - Counterfactual projection with 95% confidence intervals
 
+**Critical assumptions:**
+1. Stable pre-intervention trend would have continued
+2. No concurrent confounding events at intervention time
+3. No anticipation effects
+4. Correct functional form for trend
+
 ---
 
-## Learning Objectives
+## Learning Objectives Achieved
 
 **Technical skills:**
-- Segmented regression modeling for ITS
-- Pre-trend validation and parallel trends testing
-- Autocorrelation detection and correction
-- Counterfactual projection
-- Placebo tests and falsification
-- Sensitivity analysis and specification robustness
+✓ Segmented regression for ITS  
+✓ Pre-trend validation and non-parallel trends handling  
+✓ Autocorrelation detection and correction (Newey-West)  
+✓ Counterfactual projection with uncertainty  
+✓ Comprehensive robustness testing  
+✓ Placebo tests and falsification  
 
 **Methodological judgment:**
-- Recognizing when ITS assumptions are violated
-- Choosing appropriate model specifications given violations
-- Distinguishing causal effects from confounding
-- Systematically interrogating findings
-- Communicating results with honest uncertainty
+✓ Recognizing when assumptions are violated  
+✓ Distinguishing validation (baseline) from application (realistic)  
+✓ Understanding when results are too fragile to trust  
+✓ Communicating uncertainty and limitations honestly  
+✓ Knowing when to say "the data can't answer this question cleanly"
+
+**Key insight:**
+Perfect causal inference is rare. The baseline dataset shows ITS CAN work beautifully when assumptions hold. The realistic dataset shows what happens when they don't - and that being honest about weak evidence is more valuable than overselling it.
 
 ---
 
-## Next Steps
+## Key Takeaways
 
-**Apply to realistic dataset**
-- Smaller, ambiguous treatment effects (~50, ~30, ~15 riders)
-- More noise and confounders
-- Practice communicating uncertain results
-- "This is what real analytics looks like"
+**From baseline analysis:**
+- ITS methodology validated - works correctly on clean data
+- Segment-specific models handle non-parallel pre-trends
+- Robustness checks confirm when results are trustworthy
+
+**From realistic analysis:**
+- Small effects + high noise + confounders = fragile results
+- Placebo tests catching noise as "effects" is a major red flag
+- Concurrent events (competitor) create fundamental identification problems
+- Sometimes the honest answer is "we can't measure this reliably"
+
+**For future work:**
+- When facing similar scenarios, consider:
+  - Waiting for more post-intervention data
+  - Finding a control group (switch to DiD if possible)
+  - Using complementary methods (surveys, experiments)
+  - Being transparent about what's unknowable
 
 ---
 
-## Key References
+## References
 
 **Methodological:**
 - Bernal, J. L., Cummins, S., & Gasparrini, A. (2017). Interrupted time series regression for the evaluation of public health interventions: a tutorial. *International Journal of Epidemiology*, 46(1), 348-355.
@@ -243,13 +251,13 @@ ridership_t = β₀ + β₁(time) + β₂(post_intervention) + β₃(time_since_
 
 ---
 
-## Notes and Caveats
+## Notes
 
 **On synthetic data:**  
-This analysis uses synthetic data where true treatment effects are known. This enables validation that isn't possible with real-world data, making it ideal for learning and methodology development. In practice, true effects are unknown, making transparent assumption testing and honest uncertainty communication even more critical.
+Both datasets use synthetic data with known true effects. This enables validation impossible with real-world data. In practice, true effects are unknown, making transparent assumption testing and honest uncertainty communication even more critical.
 
-**On assumption violations:**  
-The non-parallel pre-trends discovered in EDA represent a real methodological challenge, not a data quality issue. Working through this violation - and choosing defensible approaches despite imperfect assumptions - is valuable preparation for real-world analytics where perfect identification is rare.
+**On the realistic dataset:**  
+The weak robustness isn't a failure - it's exactly what this dataset was designed to teach. Real product analytics often faces these conditions: small effects, high noise, confounding events. Learning to recognize when evidence is too weak to trust is as important as learning when it's strong.
 
 ---
 
