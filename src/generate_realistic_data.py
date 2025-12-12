@@ -21,9 +21,7 @@ from datetime import datetime, timedelta
 # Set seed for reproducibility
 np.random.seed(42)
 
-# ============================================================================
 # DATASET PARAMETERS
-# ============================================================================
 
 # Date range (same as baseline)
 START_DATE = datetime(2020, 1, 6)  # Monday
@@ -40,9 +38,7 @@ while current_date <= END_DATE:
 n_weeks = len(dates)
 print(f"Generating {n_weeks} weeks of data ({START_DATE.date()} to {END_DATE.date()})")
 
-# ============================================================================
 # ROUTE-SPECIFIC PARAMETERS (REALISTIC)
-# ============================================================================
 
 # Much smaller effects than baseline, higher noise
 route_params = {
@@ -72,9 +68,7 @@ route_params = {
     }
 }
 
-# ============================================================================
 # CONFOUNDING EVENTS
-# ============================================================================
 
 # These will affect ridership independently of express lanes
 confounders = {
@@ -107,9 +101,7 @@ confounders = {
     }
 }
 
-# ============================================================================
 # GENERATE DATA
-# ============================================================================
 
 def apply_competitor_effect(date, route_type):
     """Competitor bus service launched Jul 2023 - gradual negative effect."""
@@ -211,13 +203,8 @@ def generate_realistic_data():
     df = pd.DataFrame(all_data)
     return df
 
-# ============================================================================
 # GENERATE AND SAVE
-# ============================================================================
 
-print("="*60)
-print("GENERATING REALISTIC DATASET")
-print("="*60)
 
 df_realistic = generate_realistic_data()
 
@@ -225,21 +212,13 @@ df_realistic = generate_realistic_data()
 output_path = '../data/hard_mode/transit_ridership_realistic.csv'
 df_realistic.to_csv(output_path, index=False)
 
-print("\n" + "="*60)
-print("REALISTIC DATASET GENERATED")
-print("="*60)
 print(f"Saved to: {output_path}")
 print(f"Total observations: {len(df_realistic):,}")
 print(f"Date range: {df_realistic['date'].min().date()} to {df_realistic['date'].max().date()}")
 print(f"Route types: {df_realistic['route_type'].unique().tolist()}")
 
-# ============================================================================
 # SUMMARY STATISTICS
-# ============================================================================
 
-print("\n" + "="*60)
-print("SUMMARY BY ROUTE AND PERIOD")
-print("="*60)
 
 for route in ['Downtown', 'Suburban', 'Cross-town']:
     route_data = df_realistic[df_realistic['route_type'] == route]
@@ -252,13 +231,8 @@ for route in ['Downtown', 'Suburban', 'Cross-town']:
     print(f"  Post-intervention mean: {post.mean():7.1f} riders (std: {post.std():.1f})")
     print(f"  Naive difference:       {post.mean() - pre.mean():+7.1f} riders")
 
-# ============================================================================
 # RAW JUMP AT INTERVENTION (for validation)
-# ============================================================================
 
-print("\n" + "="*60)
-print("RAW JUMP AT INTERVENTION (for reference)")
-print("="*60)
 print("\nNote: These include confounders + noise, so won't exactly match")
 print("true treatment effects. That's the point - this is realistic!")
 
@@ -278,13 +252,8 @@ for route in ['Downtown', 'Suburban', 'Cross-town']:
     print(f"  True treatment effect: {true_effect:+6.1f} riders")
     print(f"  Note: Raw jump includes confounders + noise")
 
-# ============================================================================
 # CONFOUNDER SUMMARY
-# ============================================================================
 
-print("\n" + "="*60)
-print("CONFOUNDING EVENTS IN DATA")
-print("="*60)
 
 print("\n1. Competitor Bus Service (Jul 2023)")
 print("   - Gradual negative effect on ridership")
@@ -301,9 +270,6 @@ print("   - 2-month dip in ridership")
 print("   - All routes affected")
 print("   - Challenge: Creates noise in pre-period")
 
-print("\n" + "="*60)
-print("✓ Dataset ready for realistic ITS analysis")
-print("="*60)
 
 print("\nGround truth treatment effects:")
 for route, params in route_params.items():
@@ -314,5 +280,3 @@ print("  - Small effects + high noise = wider confidence intervals")
 print("  - Competitor confounder may bias results downward")
 print("  - Gas spike affects pre-trend estimation")
 print("  - Some effects may not reach statistical significance")
-print("\nThis is what real analytics looks like!")
-print("="*60)

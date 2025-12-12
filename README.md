@@ -13,7 +13,6 @@ This project applies Interrupted Time Series (ITS) analysis to measure the causa
 **Why this project exists:**  
 ITS is a quasi-experimental method for policy evaluation when randomized experiments aren't feasible. This project is methodological practice - first validating ITS mechanics on clean data, then applying the same approach to messy data to learn how to communicate uncertain results honestly.
 
----
 
 ## The Research Question
 
@@ -29,7 +28,6 @@ Metropolitan Transit Authority launched express bus lanes across the city on Jan
 
 These mirror real-world complications in policy evaluation and product analytics.
 
----
 
 ## Datasets
 
@@ -47,7 +45,6 @@ These mirror real-world complications in policy evaluation and product analytics
 - Confounders: Competitor launch (Jul 2023), gas spike (2022), severe winter (2023)
 - **Purpose:** Practice handling messy real-world data
 
----
 
 ## Repository Structure
 
@@ -75,7 +72,6 @@ transit-its-analysis/
     └── generate_realistic_data.py
 ```
 
----
 
 ## Analysis Summary
 
@@ -99,7 +95,6 @@ transit-its-analysis/
 
 **Conclusion:** ITS methodology validated. Estimates within ±3% of known effects, all assumptions satisfied, results extremely robust.
 
----
 
 ### **Part 2: Realistic Dataset (Practice)**
 
@@ -164,7 +159,6 @@ This is what happens when ITS assumptions are badly violated:
 
 This is the honest reality of messy observational data - sometimes you can't get clean answers, and acknowledging that is better than overselling weak results.
 
----
 
 ## Methodology: Interrupted Time Series
 
@@ -192,7 +186,6 @@ ridership_t = β₀ + β₁(time) + β₂(post_intervention) + β₃(time_since_
 3. No anticipation effects
 4. Correct functional form for trend
 
----
 
 ## Learning Objectives Achieved
 
@@ -214,7 +207,6 @@ ridership_t = β₀ + β₁(time) + β₂(post_intervention) + β₃(time_since_
 **Key insight:**
 Perfect causal inference is rare. The baseline dataset shows ITS CAN work beautifully when assumptions hold. The realistic dataset shows what happens when they don't - and that being honest about weak evidence is more valuable than overselling it.
 
----
 
 ## Key Takeaways
 
@@ -236,7 +228,6 @@ Perfect causal inference is rare. The baseline dataset shows ITS CAN work beauti
   - Using complementary methods (surveys, experiments)
   - Being transparent about what's unknowable
 
----
 
 ## References
 
@@ -249,7 +240,6 @@ Perfect causal inference is rare. The baseline dataset shows ITS CAN work beauti
 - Durbin-Watson test for autocorrelation
 - Newey-West standard errors for HAC estimation
 
----
 
 ## Notes
 
@@ -259,7 +249,6 @@ Both datasets use synthetic data with known true effects. This enables validatio
 **On the realistic dataset:**  
 The weak robustness isn't a failure - it's exactly what this dataset was designed to teach. Real product analytics often faces these conditions: small effects, high noise, confounding events. Learning to recognize when evidence is too weak to trust is as important as learning when it's strong.
 
----
 
 ## Portfolio Context
 
@@ -270,7 +259,6 @@ This project is part of my causal inference learning journey:
 3. **Staggered DiD** - [IPO Lockups](https://github.com/tomasz-solis/ipo-lockup-did-analysis)
 4. **Interrupted Time Series** - *This project*
 
----
 
 ## Contact
 

@@ -110,18 +110,12 @@ df = df.sort_values(['route_type', 'date']).reset_index(drop=True)
 output_path = '../data/easy_mode/transit_ridership_baseline.csv'
 df.to_csv(output_path, index=False)
 
-print("="*60)
-print("BASELINE DATASET GENERATED")
-print("="*60)
 print(f"\nSaved to: {output_path}")
 print(f"Total observations: {len(df):,}")
 print(f"Date range: {df['date'].min().date()} to {df['date'].max().date()}")
 print(f"\nRoute types: {df['route_type'].unique().tolist()}")
 
 # Show summary by route and period
-print("\n" + "="*60)
-print("SUMMARY BY ROUTE AND PERIOD")
-print("="*60)
 
 for route in routes:
     route_data = df[df['route_type'] == route]
@@ -138,9 +132,6 @@ for route in routes:
     print(f"  Naive difference:       {diff:+7.1f} riders")
 
 # Show the actual jump at intervention
-print("\n" + "="*60)
-print("RAW JUMP AT INTERVENTION (for validation)")
-print("="*60)
 
 for route in routes:
     route_data = df[df['route_type'] == route].sort_values('time')
@@ -159,13 +150,8 @@ for route in routes:
     print(f"  Expected from trend: {expected_trend:+7.1f} riders")
     print(f"  Treatment effect: {treatment:+7.1f} riders ← Should match β₂ in ITS")
 
-print("\n" + "="*60)
-print("✓ Dataset ready for ITS analysis")
-print("="*60)
 print("\nGround truth treatment effects:")
 print("  Downtown:   +300 riders (immediate level change)")
 print("  Suburban:   +200 riders (immediate level change)")
 print("  Cross-town: +150 riders (immediate level change)")
 print("  All slopes:    0 riders/week (no growth rate change)")
-print("\nITS validation should recover these values (±5%)")
-print("="*60)
